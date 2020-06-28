@@ -107,6 +107,8 @@ onDamagingHit() is called on when the target(the user) is hit by a damaging move
                 this.boost({atk: -1, def: -1, spa: -1, spd: -1, spe: -1}, target, source, move);
             },
         },
+	category: 'Status',
+	target: 'normal',
         pp: 30,
         priority: 0,
         accuracy: true,
