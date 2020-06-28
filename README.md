@@ -57,35 +57,40 @@ first thing we are going to do is add the pokedex entry. I am going to use Ghosu
 So to add Ghosunny we need to edit the server/data/pokedex.ts file.
 to add a new pokemon you need the following, (I am going add an example.)
 ```ts
-ghosunny : {
-	num: -5002,
-	Name: “Ghosunny”,
-	Types: [“Normal”, “Ghost”],
-	gender: “F”,
-	baseStats: { hp: 115, atk: 115, def: 125, spa: 75, spd: 100, spe: 110},
-	abilities: {0: “Prankster”, 1: “Cursed Body”, H: “Cloak of Nightmares”},
-	heightm: 10,
-	weightkg: 30,
-	color: “Purple”,
-	eggGroups: [“Undiscovered”],
+ghosunny : { // make sure this is lowercase and there is no whitespaces.
+	num: -5002, // Pokedex number. its better to start from -5002, and go down from there. The last CAP mon is -5001 that smogon made. 
+	Name: “Ghosunny”,// This is the Pokemon's name.
+	Types: [“Normal”, “Ghost”], // This is the typing. If you are doing mono type, then do the following
+//	Types: ["Normal"], // this is for monotyping.
+	gender: “F”, // This is for gender specific pokemon. if your pokemon is either Male or Female, then do the one below
+//	genderRatio: {M: 0.5, F: 0.5}, // This is Gender ratio. The ratios are in decemial numbers, from 0 to 1.
+	baseStats: { hp: 115, atk: 115, def: 125, spa: 75, spd: 100, spe: 110}, // This is the Base Stats for the pokemon.
+	abilities: {0: “Prankster”, 1: “Cursed Body”, H: “Cloak of Nightmares”}, // This is the Pokemon's ability. the H means Hidden. 0, and 1 is the ability slot.
+	heightm: 10, // This is height in meters. This is required, i tried doing it with out it, and it complained a lot.
+	weightkg: 30, // This is weight in kilograms. This is required, I tried doing it with out it, and it complained a lot.
+	color: “Purple”, // This is the Pokemon's Majority color.
+	eggGroups: [“Undiscovered”], // This is the Pokemons Egg groups. If you need to add another group, just do the following.
+//	eggGroups: ["Monstor", "Bug"], // This is for Pokemon that are in 2 egg groups.
 },
 ```
+**Note:** when you are putting in the pokemon name in as the object, make sure there is no whitespaces, and all characters are lowercase.
 all of this is required.
 Now you must be wondering, "Cloak of Nightmares" isn't an ability. and you would be right, thats because it is a custom ability.
 To make this specific ability we would have to do something like this in the server/data/abilities.ts file.
 ```ts
-    cloakofnightmares: {
-        shortDesc: "If a pokemon makes Contact with Ghosunny, Their Attacks is dropped by 1 stage.",
-        desc: "When a pokemon makes contact with Ghosunny, they see a nightmare, causing them to shake in fear.",
-        onDamagingHit(damage, target, source, move) {
-            if(move.flags['contact']) {
-                this.add('-ability', target, 'Cloak of Nightmares');
-                this.boost({atk: -1}, source, target, null, true);
+    cloakofnightmares: { // Make sure this is lowercase, and there is no whitespaces.
+        shortDesc: "If a pokemon makes Contact with Ghosunny, Their Attacks is dropped by 1 stage.", // this is the short description of the ability.
+        desc: "When a pokemon makes contact with Ghosunny, they see a nightmare, causing them to shake in fear.", // This is the description of the ability.
+        onDamagingHit(damage, target, source, move) { // onDamageHit() is called on when the target is hit by a Damaging move.
+            if(move.flags['contact']) { // Checks if the move flags has contact.
+	    //If so, then
+                this.add('-ability', target, 'Cloak of Nightmares'); // Write to the battle logs
+                this.boost({atk: -1}, source, target, null, true); // Lower the source's attack by 1 stage.
             }
         },
-        name: "Cloak of Nightmares",
-        rating: 10,
-        num: -100
+        name: "Cloak of Nightmares", // The Ability's Name
+        rating: 10, // The Ability's Rating.
+        num: -100 // The Ability number. It is best to have - next to the number so there is no conflicts.
     },
 ```
 
@@ -96,26 +101,29 @@ onDamagingHit() is called on when the target(the user) is hit by a damaging move
    Now lets do a custom move.
    This one is called Peek-a-Boo. Its an interesting move that I came up with
 ```ts
-   peekaboo: {
-        name: "Peek-a-Boo",
+   peekaboo: { // Make sure this is lowercase and there is no whitespace
+        name: "Peek-a-Boo", // the move's name
+	// This is the Short description of the move.
         shortDesc: "If the target is asleep, This move will decrease all of the target’s stats by 1 stage. This will wake up the target. Fails if the target is not asleep.",
-        desc: "When the target is sleeping, the user manifests itself into the target’s dream, and terrorizes the target inside their mind. Causing the target to wake up feeling weak.",
-        effect: {
-            onHit(target, source, move) {
-                if(target.status !== 'slp') return;
-                target.cureStatus();
-                this.boost({atk: -1, def: -1, spa: -1, spd: -1, spe: -1}, target, source, move);
+        // This is the description of the move.
+	desc: "When the target is sleeping, the user manifests itself into the target’s dream, and terrorizes the target inside their mind. Causing the target to wake up feeling weak.",
+        effect: { // This is an optional property. But this is used when your move has effects. effect and secondary are not the same thing in this context.
+            onHit(target, source, move) { // onHit() is called on when the target is hit by the source. in this context, when the user hits the Target.
+                if(target.status !== 'slp') return; // Checks if the target's status is asleep. if not, then return. which in this context means the move will fail.
+                target.cureStatus(); // This will cure the status of the target. in this context it removes the asleep status.
+                this.boost({atk: -1, def: -1, spa: -1, spd: -1, spe: -1}, target, source, move); // this.boost will lower the target's status 1 stage.
             },
         },
-	category: 'Status',
-	target: 'normal',
-        pp: 30,
-        priority: 0,
-        accuracy: true,
-        basePower: 0,
-        flags: {status: 1},
-        type: "Ghost",
-        contestType: "Cool",
+//	secondary: null, //This is for moves that have a secondary effect, such as burn, para, etc.
+	category: 'Status', // The move category. in this context it is a Status move.
+	target: 'normal', // The move's target type. in this context it is normal, meaning it will hit only one of the pokemon.
+        pp: 30,// Power Points. the amount of times the move can be used.
+        priority: 0,// Priority of the move. in this context it doesn't have priority so it is 0.
+        accuracy: true,// the move's accuracy. If the vaule is set to true, like in this context, that means it will never miss. if your move can miss, then you would put in a number.
+        basePower: 0, // the move's base power. In this context, since it is a status move, it doesn't have a base power.
+        flags: {status: 1}, // the move's flags. this is what kind of move is it. does it make contact, can it be blocked by protect, etc. all of the flags values are numbers, and should be 1, which means true in this context. if the flag doesn't apply to the move, then don't add it.
+        type: "Ghost", // The move's typing.
+        contestType: "Cool", // The Contest type.
     },
 ```
    onHit() is called on when the source hits the target. This can be either a status move, or a damaging move.
@@ -125,10 +133,10 @@ onDamagingHit() is called on when the target(the user) is hit by a damaging move
    
    to do this, we need to go to the server/data/learnsets.ts file, and do the following:
 ```
-   ghosunny: {
-      learnsets: {
-        peekaboo: ["8L1"],
-        hypnosis: ["8L1"],
+   ghosunny: { // Make sure this is lowercase and there is no whitespace. this also need to be spelt just like how it is in the pokedex.ts file.
+      learnsets: { // This is creating the learnsets object for the pokemon.
+        peekaboo: ["8L1"], // This is one of the moves that it can learn.
+        hypnosis: ["8L1"], // Another move.
       },
    },
 ```
@@ -141,4 +149,4 @@ onDamagingHit() is called on when the target(the user) is hit by a damaging move
    now go to any web browser, and type in `localhost:8080/testclient.html?~~localhost:8000`
    and test see if the pokemon you made is there.
    
-   This is all for now, I am still playing with it, and trying to find new stuff. I will make updates where after i find something useful
+   This is all for now, I am still playing with it, and trying to find new stuff. I will make updates here after i find something useful
